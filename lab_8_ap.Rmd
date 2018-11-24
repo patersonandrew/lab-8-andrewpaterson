@@ -17,3 +17,86 @@ salmon <- read_csv("salmon_imports_R.csv")
 
 ```
 
+```{r}
+
+salmon_plot <- ggplot(salmon, aes(x = salmon_fresh, y = year))+
+  geom_point()
+
+salmon_plot
+
+#The relationship overall looks linear, and I feel comfortable using a linear regression.
+
+```
+
+```{r}
+
+salmon_model <- lm(salmon_fresh ~ year, data = salmon)
+
+salmon_model
+
+#Imports(tons) = -14982940 + 7550(year) + error
+
+#In the context of this model, the slope means that salmon imports will grow by 7550 thousand per year.  The y-intercept in the context of this model means that there were -14982940 imports in 1990.  That is concerning because we know the US did not have negative net imports of salmon in 1990.  This means that this model will not be accurate to exptrapolate into the past to find salmon imports before 1990.
+```
+
+```{r}
+
+plot(salmon_model)
+
+#The residuals do not appear very normally distributed, and I am concerned about the heteroskedacity of the model. They are much more closely grouped on the left side of the model, and much more widely groued on the right side.
+
+par(mfrow = c(2,2))
+plot(salmon_model)
+
+```
+
+```{r}
+
+summary(salmon_model)
+
+#Year does significantly predict salmon imports with p > .001.  R squared describes the percentage of variance in y is explained by the x value (year). Here, 94% of the variation in imports in explained by the year. About 6% of the variation is not explained by year.
+
+```
+
+```{r}
+
+salmon_final_graph <- ggplot(salmon, aes(x=year, y=salmon_fresh))+
+  geom_point()+
+  geom_smooth(method = lm, se = TRUE, size = .5, color = "gray20")+
+  theme_bw()+
+  scale_x_continuous(expand = c(0,0), limits = c(1990, 2017))+
+  labs(x = "Year", y = "U.S. Annual Fresh Salmon Imports (1,000 pounds")
+
+salmon_final_graph
+
+```
+
+```{r}
+
+new_years <- data.frame(year = c(2022, 2024, 2026, 2028))
+
+new_years
+
+```
+
+```{r}
+
+future_predict <- predict(salmon_model, newdata = new_years, interval = "confidence")
+future_predict
+
+predictions <- data.frame(new_years, future_predict)
+predictions
+
+```
+
+```{r}
+
+salmon_test <- cor.test(salmon$year, salmon$salmon_fresh)
+
+salmon_test
+
+#With a pearson's R of .97, there is a strong positive correlation between year and the volume of fresh salmon imports.
+
+```
+
+The model (Imports = -14982940 + 7550(year) + error (in thousand of tons)) explains a significant amount of variance in annual salmon imports (F(1, 26) = 471.9, p < .001, R2 = .974, Pearson's r = .973).
